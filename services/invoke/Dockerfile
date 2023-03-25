@@ -1,6 +1,11 @@
 # syntax=docker/dockerfile:1
 
 FROM alpine:3.17 as xformers
+
+ENV http_proxy 'http://10.81.2.101:9910'
+ENV https_proxy 'http://10.81.2.101:9910'
+RUN wget cip.cc
+
 RUN apk add --no-cache aria2
 RUN aria2c -x 5 --dir / --out wheel.whl 'https://github.com/AbdBarho/stable-diffusion-webui-docker/releases/download/5.0.0/xformers-0.0.17.dev449-cp310-cp310-manylinux2014_x86_64.whl'
 
@@ -60,6 +65,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 RUN touch invokeai.init
 COPY . /docker/
 
+
+ENV http_proxy ''
+ENV https_proxy ''
 
 ENV PYTHONUNBUFFERED=1 ROOT=/stable-diffusion PYTHONPATH="${PYTHONPATH}:${ROOT}" PRELOAD=false CLI_ARGS="" HF_HOME=/root/.cache/huggingface
 EXPOSE 7860

@@ -4,6 +4,10 @@ FROM python:3.8-slim
 
 SHELL ["/bin/bash", "-ceuxo", "pipefail"]
 
+ENV http_proxy 'http://10.81.2.101:9910'
+ENV https_proxy 'http://10.81.2.101:9910'
+RUN wget cip.cc
+
 ENV DEBIAN_FRONTEND=noninteractive PIP_PREFER_BINARY=1
 
 RUN --mount=type=cache,target=/root/.cache/pip pip install torch==1.13.0 torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
@@ -38,6 +42,9 @@ chmod +x /docker/mount.sh /docker/run.sh
 # streamlit
 sed -i -- 's/8501/7860/g' /stable-diffusion/.streamlit/config.toml
 EOF
+
+ENV http_proxy ''
+ENV https_proxy ''
 
 WORKDIR /stable-diffusion
 ENV PYTHONPATH="${PYTHONPATH}:${PWD}" STREAMLIT_SERVER_HEADLESS=true USE_STREAMLIT=0 CLI_ARGS=""

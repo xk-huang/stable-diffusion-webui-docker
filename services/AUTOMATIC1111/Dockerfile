@@ -4,6 +4,10 @@ FROM alpine/git:2.36.2 as download
 
 SHELL ["/bin/sh", "-ceuxo", "pipefail"]
 
+ENV http_proxy 'http://10.81.2.101:9910'
+ENV https_proxy 'http://10.81.2.101:9910'
+RUN wget cip.cc
+
 RUN <<EOF
 cat <<'EOE' > /clone.sh
 mkdir -p repositories/"$1" && cd repositories/"$1" && git init && git remote add origin "$2" && git fetch origin "$3" --depth=1 && git reset --hard "$3" && rm -rf .git
@@ -26,9 +30,12 @@ RUN . /clone.sh clip-interrogator https://github.com/pharmapsychotic/clip-interr
 
 FROM alpine:3.17 as xformers
 RUN apk add --no-cache aria2
-RUN aria2c -x 5 --dir / --out wheel.whl 'https://github.com/AbdBarho/stable-diffusion-webui-docker/releases/download/5.0.0/xformers-0.0.17.dev449-cp310-cp310-manylinux2014_x86_64.whl'
+RUN aria2c -x 5 --dir / --out wheel.whl 'https://github.com/AbdBarho/stable-diffusion-webui-docker/releases/download/5.0.0/xformers-0.0.17.dev449-cp310-cp310-manylinux2014_x86_64.whl' --all-proxy 'http://10.81.2.101:9910'
 
 FROM python:3.10.9-slim
+
+ENV http_proxy 'http://10.81.2.101:9910'
+ENV https_proxy 'http://10.81.2.101:9910'
 
 SHELL ["/bin/bash", "-ceuxo", "pipefail"]
 
@@ -89,6 +96,9 @@ mv ${ROOT}/style.css ${ROOT}/user.css
 # one of the ugliest hacks I ever wrote
 sed -i 's/in_app_dir = .*/in_app_dir = True/g' /usr/local/lib/python3.10/site-packages/gradio/routes.py
 EOF
+
+ENV http_proxy ''
+ENV https_proxy ''
 
 WORKDIR ${ROOT}
 ENV CLI_ARGS=""
